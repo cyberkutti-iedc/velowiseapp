@@ -1,0 +1,25 @@
+{/*    <View style={styles.boxContainer}>
+        
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: latitude,
+                longitude: longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+            >
+              {/* Marker for the vehicle location */}
+              <Marker
+                coordinate={{ latitude: latitude, longitude: longitude }}
+                title="Vehicle Location"
+              />
+            </MapView>
+          </View>
+          */}
+          </View>
+
+
+
+          AIzaSyAxImM2sbpCYEzMdvrV5YULA7FqqtHCZGk

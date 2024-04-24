@@ -1,7 +1,6 @@
 import React from 'react';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet } from 'react-native';
 
 import NestedHomeScreen from './NestedHomeScreen';
 import VehicleScreen from './VehicleScreen';
@@ -9,13 +8,19 @@ import SettingsScreen from './SettingsScreen';
 
 const Tab = createMaterialBottomTabNavigator();
 
-const Home: React.FC<{ navigation: any }> = ({ navigation }) => {
+const Home: React.FC<{ navigation: any }> = ({ }) => {
   return (
     <Tab.Navigator
       initialRouteName="NestedHome"
-      activeColor="#13141F"
-      inactiveColor="#AAAAAA"
-      barStyle={styles.tabBar}
+      activeColor="#6A5ACD"
+      inactiveColor="#C0C0C0"
+      barStyle={{
+        backgroundColor: '#F8F8FF',
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        overflow: 'hidden',
+        elevation: 8,
+      }}
     >
       <Tab.Screen
         name="NestedHome"
@@ -44,15 +49,5 @@ const Home: React.FC<{ navigation: any }> = ({ navigation }) => {
     </Tab.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: '#13141F',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
-    elevation: 8,
-  },
-});
 
 export default Home;

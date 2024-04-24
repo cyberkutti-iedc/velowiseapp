@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Pressable, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import COLORS from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import Checkbox from 'expo-checkbox';
 import Button from '../components/Button';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import firebaseApp from '../constants/firebase';
 
 const Login: React.FC<{ navigation: any }> = ({ navigation }) => {
@@ -14,10 +14,30 @@ const Login: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    useEffect(() => {
+        // Check if the user is already logged in
+        checkLoginStatus();
+    }, []);
+
+    const checkLoginStatus = async () => {
+        try {
+            // Check if the login status is saved in AsyncStorage
+            const loginStatus = await AsyncStorage.getItem('loginStatus');
+            if (loginStatus === 'true') {
+                // If the user is logged in, navigate to the home screen
+                navigation.navigate('Home');
+            }
+        } catch (error) {
+            console.error('Error checking login status:', error);
+        }
+    };
+
     const handleLogin = async () => {
         try {
             await firebaseApp.auth().signInWithEmailAndPassword(email, password);
-            // Navigate to the home screen upon successful login
+            // Save the login status in AsyncStorage upon successful login
+            await AsyncStorage.setItem('loginStatus', 'true');
+            // Navigate to the home screen
             navigation.navigate('Home');
         } catch (error: any) {
             console.error('Error logging in:', error.message);
@@ -25,6 +45,16 @@ const Login: React.FC<{ navigation: any }> = ({ navigation }) => {
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            // Clear the login status from AsyncStorage upon logout
+            await AsyncStorage.removeItem('loginStatus');
+            // Navigate to the login screen
+            navigation.navigate('Login');
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
+    };
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.contentContainer}>

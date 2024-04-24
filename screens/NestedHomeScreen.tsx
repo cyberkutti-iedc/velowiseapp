@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
+import firebaseApp from '../constants/firebase'; 
 
 type Props = {
   navigation: NavigationProp<any>;
@@ -12,8 +13,27 @@ const NestedHomeScreen: React.FC<Props> = ({ navigation }) => {
   const goBack = () => {
     navigation.goBack();
   };
+
   const [isVehicleOn, setIsVehicleOn] = useState(false);
   const [isLockVehicleOn, setIsLockVehicleOn] = useState(false);
+  const [isConnectionVehicleOn, setIsConnectionVehicleOn] = useState(false);
+  const [isConnectionStatusOn, setIsConnectionStatusOn] = useState(false);
+  const [isWifiOn, setIsWifiOn] = useState(false);
+  const [isAlertOn, setIsAlertOn] = useState(false);
+  const [isLockClosed, setIsLockClosed] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [vuinId, setVuinId] = useState('');
+  const [vehicleNumber, setVehicleNumber] = useState('');
+  const [model, setModel] = useState('');
+
+  const lockVehicleRef = firebaseApp.database().ref('velowise/lockVehicle');
+  const connectionVehicleRef = firebaseApp.database().ref('velowise/Connection_vehicle');
+  const wifiRef = firebaseApp.database().ref('velowise/Connection_vehicle');
+  const alertRef = firebaseApp.database().ref('velowise/key');
+  const lockClosedRef = firebaseApp.database().ref('velowise/lockVehicle');
+  const accountRef = firebaseApp.database().ref('velowise/accounts');
+  
 
   useEffect(() => {
     SplashScreen.preventAutoHideAsync();
@@ -22,8 +42,97 @@ const NestedHomeScreen: React.FC<Props> = ({ navigation }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const accountListener = accountRef.on('value', (snapshot) => {
+      const accountData = snapshot.val();
+      setName(accountData.name);
+      setEmail(accountData.email);
+      setVuinId(accountData.vuinId);
+      setVehicleNumber(accountData.vehicleNumber);
+      setModel(accountData.model);
+    });
+
+    return () => accountRef.off('value', accountListener);
+  }, []);
+
+  // Toggle lock vehicle
+  const toggleLockVehicle = () => {
+    const newLockStatus = !isLockVehicleOn;
+    lockVehicleRef.set(newLockStatus);
+    setIsLockVehicleOn(newLockStatus);
+  };
+
+  // Toggle connection vehicle
+  const toggleConnectionVehicle = () => {
+    const newConnectionStatus = !isConnectionVehicleOn;
+    connectionVehicleRef.set(newConnectionStatus);
+    setIsConnectionVehicleOn(newConnectionStatus);
+  };
+
+  // Toggle wifi
+  const toggleWifi = () => {
+    const newWifiStatus = !isWifiOn;
+    wifiRef.set(newWifiStatus);
+    setIsWifiOn(newWifiStatus);
+  };
+
+  // Toggle alert
+  const toggleAlert = () => {
+    const newAlertStatus = !isAlertOn;
+    alertRef.set(newAlertStatus);
+    setIsAlertOn(newAlertStatus);
+  };
+
+  // Toggle lock closed
+  const toggleLockClosed = () => {
+    const newLockClosedStatus = !isLockClosed;
+    lockClosedRef.set(newLockClosedStatus);
+    setIsLockClosed(newLockClosedStatus);
+  };
+
+  useEffect(() => {
+    const lockListener = lockVehicleRef.on('value', (snapshot) => {
+      const lockStatus = snapshot.val();
+      setIsLockVehicleOn(lockStatus);
+    });
+  
+    return () => lockVehicleRef.off('value', lockListener);
+  }, []);
+
+  useEffect(() => {
+    const connectionListener = connectionVehicleRef.on('value', (snapshot) => {
+      const connectionStatus = snapshot.val();
+      setIsConnectionVehicleOn(connectionStatus);
+    });
+   
+    return () => connectionVehicleRef.off('value', connectionListener);
+  }, []);
+
+  useEffect(() => {
+    const wifiListener = wifiRef.on('value', (snapshot) => {
+      const wifiStatus = snapshot.val();
+      setIsWifiOn(wifiStatus);
+    });
+
+    const alertListener = alertRef.on('value', (snapshot) => {
+      const alertStatus = snapshot.val();
+      setIsAlertOn(alertStatus);
+    });
+
+    const lockClosedListener = lockClosedRef.on('value', (snapshot) => {
+      const lockClosedStatus = snapshot.val();
+      setIsLockClosed(lockClosedStatus);
+    });
+
+    return () => {
+      wifiRef.off('value', wifiListener);
+      alertRef.off('value', alertListener);
+      lockClosedRef.off('value', lockClosedListener);
+    };
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <View style={styles.leftHeader}>
           <TouchableOpacity onPress={goBack} style={styles.backButton}>
@@ -31,20 +140,23 @@ const NestedHomeScreen: React.FC<Props> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.rightHeader}>
-          <Ionicons name="person" size={24} color="#FFFFFF" style={styles.profileIcon} />
-        </View>
+  <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+    <Ionicons name="person" size={24} color="#FFFFFF" style={styles.profileIcon} />
+  </TouchableOpacity>
+</View>
+
       </View>
       <Text style={styles.bigText}>Hello, Velowise User</Text>
 
       <View style={styles.statusInd}>
-        <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="wifi" size={28} color="#FFFFFF" style={styles.status} />
+        <TouchableOpacity onPress={toggleWifi}>
+          <Ionicons name="wifi" size={28} color={isWifiOn ? '#FFFFFF' : '#333333'} style={styles.status} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="alert-circle" size={28} color="#FFFFFF" style={styles.status} />
+        <TouchableOpacity onPress={toggleAlert}>
+          <Ionicons name="alert-circle" size={28} color={isAlertOn ? '#333333' : '#FFFFFF'} style={styles.status} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="lock-closed" size={28} color="#FFFFFF" style={styles.status} />
+        <TouchableOpacity onPress={toggleLockClosed}>
+          <Ionicons name="lock-closed" size={28} color={isLockClosed ? '#FFFFFF' : '#333333'} style={styles.status} />
         </TouchableOpacity>
       </View>
 
@@ -52,42 +164,44 @@ const NestedHomeScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Velowise Information</Text>
         <View style={styles.infoItem}>
           <Text style={styles.infoTitle}>Name:</Text>
-          <Text style={styles.infoText}>John Doe</Text>
+          <Text style={styles.infoText}>{name}</Text>
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoTitle}>Email ID:</Text>
-          <Text style={styles.infoText}>example@example.com</Text>
+          <Text style={styles.infoText}>{email}</Text>
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoTitle}>VUIN ID:</Text>
-          <Text style={styles.infoText}>123456789</Text>
+          <Text style={styles.infoText}>{vuinId}</Text>
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoTitle}>Vehicle Number:</Text>
-          <Text style={styles.infoText}>ABC123</Text>
+          <Text style={styles.infoText}>{vehicleNumber}</Text>
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoTitle}>Model:</Text>
-          <Text style={styles.infoText}>Model X</Text>
+          <Text style={styles.infoText}>{model}</Text>
         </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.lockButton, isLockVehicleOn ? styles.connected : styles.disconnected]}
-            onPress={() => setIsLockVehicleOn(!isLockVehicleOn)}
+            onPress={toggleLockVehicle}
           >
             <Text style={styles.buttonText}>{isLockVehicleOn ? 'Unlock Vehicle' : 'Lock Vehicle'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.button, styles.connectButton, isVehicleOn ? styles.connected : styles.disconnected]}
-            onPress={() => setIsVehicleOn(!isVehicleOn)}
+            style={[styles.button, isConnectionVehicleOn ? styles.connected : styles.disconnected]}
+            onPress={toggleConnectionVehicle}
           >
-            <Text style={styles.buttonText}>{isVehicleOn ? 'Connected Vehicle' : 'Disconnected Vehicle'}</Text>
+            <Text style={styles.buttonText}>
+              {isConnectionVehicleOn ? 'Disconnect Vehicle' : 'Connect Vehicle'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -95,7 +209,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#6A5ACD', // Violet background color
     borderBottomLeftRadius: 60,
     borderBottomRightRadius: 60,
     overflow: 'hidden',
@@ -106,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 20,
-    marginTop: Platform.OS === 'ios' ? 50 : 20,
+    marginTop: Platform.OS === 'ios' ? 24 : 12,
   },
   leftHeader: {
     borderRadius: 20,
@@ -119,12 +233,12 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 10,
     borderRadius: 20,
-    backgroundColor: '#2F2F2F',
+    backgroundColor: '#4B0082', // Indigo color
   },
   profileIcon: {
     padding: 10,
     borderRadius: 20,
-    color: '#000',
+    color: '#FFFFFF',
   },
   bigText: {
     fontSize: 56,
@@ -132,17 +246,17 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     marginLeft: 4,
     marginRight: 4,
-    color: '#2F2F2F',
-    fontFamily: 'OpenSans',
+    color: '#FFFFFF',
+    
   },
   statusInd: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#2F2F2F',
+    backgroundColor: '#9390DF', // Indigo color
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#CCE5E3',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 10,
       height: 10,
@@ -155,10 +269,10 @@ const styles = StyleSheet.create({
     height: 80,
   },
   bigBox: {
-    backgroundColor: '#2F2F2F',
+    backgroundColor: '#9390DF', // Indigo color
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#CCE5E3',
+    shadowColor: '#000000',
     shadowOffset: {
       width: 10,
       height: 10,
@@ -183,15 +297,20 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   infoTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#CCE5E3',
+    fontSize: 21, // Increased font size
+    fontWeight: '600', // Slightly heavier font weight
+    color: '#8A2BE2', // Blue Violet color
     marginRight: 10,
+    marginBottom: 5, // Add some spacing between title and text
+    textTransform: 'uppercase', // Uppercase text
   },
   infoText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#FFFFFF',
+    lineHeight: 24, // Increase line height for better readability
+    letterSpacing: 0.5, // Add some letter spacing for better visual appeal
   },
+  
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -207,10 +326,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lockButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#9400D3', // Dark violet color
   },
   connectButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#800080', // Purple color
   },
   buttonText: {
     color: '#FFFFFF',
@@ -218,11 +337,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   connected: {
-    backgroundColor: 'green',
+    backgroundColor: '#8A2BE2', // Blue Violet color
   },
   disconnected: {
-    backgroundColor: 'orange',
+    backgroundColor: '#FFA500', // Orange color
   },
+  
   status: {
     marginRight: 20,
   },

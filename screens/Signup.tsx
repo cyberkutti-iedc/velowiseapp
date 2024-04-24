@@ -1,25 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, Image, Pressable, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, Pressable, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import COLORS from '../constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import Checkbox from 'expo-checkbox';
 import Button from '../components/Button';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //firebase
-
 import firebaseApp from '../constants/firebase'; 
 
-
-
-//
 const Signup: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [isPasswordShown, setIsPasswordShown] = useState(false);
     const [isChecked, setIsChecked] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [vuin, setVUIN] = useState('');
+
+    useEffect(() => {
+        // Retrieve saved email and password from AsyncStorage
+        AsyncStorage.getItem('userData').then((data) => {
+            if (data) {
+                const userData = JSON.parse(data);
+                setEmail(userData.email);
+                setPassword(userData.password);
+            }
+        });
+    }, []);
 
     const handleSignup = async () => {
         try {
@@ -30,22 +37,27 @@ const Signup: React.FC<{ navigation: any }> = ({ navigation }) => {
                     password,
                     vuin,
                 });
+
+                // Save email and password if the "Remember Me" checkbox is checked
+                if (isChecked) {
+                    AsyncStorage.setItem('userData', JSON.stringify({ email, password }));
+                }
+
                 navigation.navigate('Login');
                 Alert.alert('Success', 'Your account has been created successfully!');
             }
-        } catch (error: any) { // Specify the type of 'error' as 'any'
+        } catch (error: any) { 
             console.error('Error signing up:', error.message);
             Alert.alert('Error', error.message);
         }
     };
     
-
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.contentContainer}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.title}>Create Account</Text>
-                    <Text style={styles.subtitle}>Connect with your friend today!</Text>
+                    <Text style={styles.subtitle}>Connect with your Velowise Module today!</Text>
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -57,6 +69,7 @@ const Signup: React.FC<{ navigation: any }> = ({ navigation }) => {
                             keyboardType='email-address'
                             style={styles.input}
                             onChangeText={setEmail}
+                            value={email}
                         />
                     </View>
                 </View>
@@ -70,6 +83,7 @@ const Signup: React.FC<{ navigation: any }> = ({ navigation }) => {
                             keyboardType='numeric'
                             style={styles.input}
                             onChangeText={setVUIN}
+                            value={vuin}
                         />
                     </View>
                 </View>
@@ -83,6 +97,7 @@ const Signup: React.FC<{ navigation: any }> = ({ navigation }) => {
                             secureTextEntry={!isPasswordShown}
                             style={styles.input}
                             onChangeText={setPassword}
+                            value={password}
                         />
                         <TouchableOpacity
                             onPress={() => setIsPasswordShown(!isPasswordShown)}
@@ -100,7 +115,7 @@ const Signup: React.FC<{ navigation: any }> = ({ navigation }) => {
                         onValueChange={setIsChecked}
                         color={isChecked ? COLORS.primary : undefined}
                     />
-                    <Text style={styles.checkboxText}>I agree to the terms and conditions</Text>
+                    <Text style={styles.checkboxText}>Remember Me</Text>
                 </View>
 
                 <Button
@@ -210,40 +225,6 @@ const styles = StyleSheet.create({
     button: {
         marginTop: 18,
         marginBottom: 4,
-    },
-    separator: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 20,
-    },
-    line: {
-        flex: 1,
-        height: 1,
-        backgroundColor: COLORS.grey,
-        marginHorizontal: 10,
-    },
-    separatorText: {
-        fontSize: 14,
-    },
-    socialButtonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    socialButton: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        height: 52,
-        borderWidth: 1,
-        borderColor: COLORS.grey,
-        marginRight: 4,
-        borderRadius: 10,
-    },
-    socialIcon: {
-        height: 36,
-        width: 36,
-        marginRight: 8,
     },
     loginContainer: {
         flexDirection: 'row',

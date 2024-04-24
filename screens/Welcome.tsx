@@ -106,11 +106,11 @@ const Welcome: React.FC<{ navigation: any }> = ({ navigation }) => {
                             fontSize: 16,
                             color: COLORS.white,
                             marginVertical: 4
-                        }}>Connect with each other with chatting</Text>
+                        }}>Connect with Velowise</Text>
                         <Text style={{
                             fontSize: 16,
                             color: COLORS.white,
-                        }}>Calling, Enjoy Safe and private texting</Text>
+                        }}>Safe,Sercure ,Ride</Text>
                     </View>
 
                     <Button
